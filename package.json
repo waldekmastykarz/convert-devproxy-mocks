@@ -1,0 +1,15 @@
+{
+  "name": "convert-devproxy-mocks",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "convert:mocks": "node convert-mocks.js",
+    "convert:randomerrors": "node convert-randomerrors.js",
+    "convert:ratelimitingresponse": "node convert-ratelimitingcustomresponse.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
