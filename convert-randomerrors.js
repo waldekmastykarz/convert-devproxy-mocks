@@ -11,17 +11,33 @@ fs.copyFileSync(filePath, `${filePath}.bak`);
 
 const responsesFile = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 responsesFile.responses.forEach(response => {
-  if (!response.addDynamicRetryAfter) {
-    return;
+  let addDynamicRetryAfter = false;
+
+  if (response.addDynamicRetryAfter) {
+    addDynamicRetryAfter = true;
+    delete response.addDynamicRetryAfter;
   }
 
-  delete response.addDynamicRetryAfter;
-
-  if (!response.headers) {
-    response.headers = {};
+  // v0.14-beta.5 -> v0.14-beta.6
+  if (response.headers) {
+    response.headers = Object.getOwnPropertyNames(response.headers).map(headerName => {
+      return {
+        name: headerName,
+        value: response.headers[headerName]
+      }
+    });
+  }
+  else {
+    response.headers = [];
   }
 
-  response.headers['Retry-After'] = '@dynamic';
+  if (addDynamicRetryAfter) {
+    response.headers.push({ name: 'Retry-After', value: '@dynamic' });
+  }
+
+  if (response.headers.length === 0) {
+    delete response.headers;
+  }
 });
 
 fs.writeFileSync(filePath, JSON.stringify(responsesFile, null, 2));

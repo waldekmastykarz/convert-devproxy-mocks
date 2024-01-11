@@ -10,8 +10,10 @@ if (!fs.existsSync(filePath)) {
 fs.copyFileSync(filePath, `${filePath}.bak`);
 
 const responsesFile = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-const mocks = {
-  mocks: responsesFile.responses.map(response => {
+const mocksFile = { mocks: [] };
+// < v0.14 -> v0.14-beta.5
+if (responsesFile.responses) {
+  mocksFile.mocks = responsesFile.responses.map(response => {
     return {
       request: {
         url: response.url,
@@ -24,7 +26,25 @@ const mocks = {
         body: response.responseBody,
       }
     }
-  })
-};
+  });
+}
+// v0.14-beta.5 -> v0.14-beta.6
+else {
+  mocksFile.mocks = responsesFile.mocks.map(mock => {
+    return {
+      request: mock.request,
+      response: {
+        statusCode: mock.response.statusCode,
+        headers: mock.response.headers ? Object.getOwnPropertyNames(mock.response.headers).map(headerName => {
+          return {
+            name: headerName,
+            value: mock.response.headers[headerName]
+          }
+        }) : undefined,
+        body: mock.response.body
+      }
+    }
+  });
+}
 
-fs.writeFileSync(filePath, JSON.stringify(mocks, null, 2));
+fs.writeFileSync(filePath, JSON.stringify(mocksFile, null, 2));
